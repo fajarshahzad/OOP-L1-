@@ -1,0 +1,140 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+
+class MUser
+{
+    public string Username;
+    public string Password ;
+    public string Role ;
+}
+
+class Program
+{
+    private const string FilePath = "users.txt";//this file contains the hardcoded entered users
+
+    static List<MUser> LoadUsersFromFile()
+    {
+        List<MUser> users = new List<MUser>();
+
+        try
+        {
+            string[] lines = File.ReadAllLines(FilePath);
+
+            foreach (var line in lines)
+            {
+                string[] values = line.Split(',');
+                if (values.Length == 3)
+                {
+                    MUser user = new MUser
+                    {
+                        Username = values[0],
+                        Password = values[1],
+                        Role = values[2]
+                    };
+                    users.Add(user);
+                }
+            }
+        }
+        catch (FileNotFoundException)
+        {
+            // File doesn't exist yet
+        }
+
+        return users;
+    }
+
+    static void SaveUsersToFile(List<MUser> users)
+    {
+        using (StreamWriter sw = new StreamWriter(FilePath, false))
+        {
+            foreach (var user in users)
+            {
+                sw.WriteLine($"{user.Username},{user.Password},{user.Role}");
+            }
+        }
+    }
+
+       static void SignUp(List<MUser> users)
+    {
+        Console.Write("Enter a new username: ");
+        string username = Console.ReadLine();
+
+        if (users.Exists(user => user.Username == username))
+        {
+            Console.WriteLine("Username already exists. Please choose a different one.");
+            return;
+        }
+
+        Console.Write("Enter a password: ");
+        string password = Console.ReadLine();
+
+        Console.Write("Enter the user's role: ");
+        string role = Console.ReadLine();
+
+        MUser newUser = new MUser
+        {
+            Username = username,
+            Password = password,
+            Role = role
+        };
+
+        users.Add(newUser);
+        SaveUsersToFile(users);
+
+        Console.WriteLine("Sign up successful.");
+    }
+
+  static void SignIn(List<MUser> users)
+    {
+        Console.Write("Enter your username: ");
+        string username = Console.ReadLine();
+
+        Console.Write("Enter your password: ");
+        string password = Console.ReadLine();
+
+        MUser user = users.Find(u => u.Username == username && u.Password == password);
+
+        if (user != null)
+        {
+            Console.WriteLine($"Welcome, {username}! Your role is {user.Role}.");
+        }
+        else
+        {
+            Console.WriteLine("Invalid username or password.");
+        }
+    }
+
+    static void Main()
+    {
+        // Load existing users from file
+        List<MUser> users = LoadUsersFromFile();
+            int option=0;
+            while(option !=3)
+            {
+                option=menu();
+                if(option==1)
+                {
+                   SignIn(users); 
+                }
+                if(option==2)
+                {
+                   SignUp(users);
+                }
+                if(option==3)
+                {
+                    break;
+                }
+            }
+      
+    }
+    static int menu()
+    {
+            Console.WriteLine("1.Sign In....");
+            Console.WriteLine("2.Sign Up....");
+            Console.WriteLine("3.Exit.......");
+            Console.WriteLine("Enter your option: ");
+            int option=int.Parse(Console.ReadLine());
+            return option;
+    }
+}
